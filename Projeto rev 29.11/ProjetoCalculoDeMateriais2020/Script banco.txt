@@ -1,0 +1,27 @@
+create database projeto;
+use projeto;
+create table usuario(id_user int auto_increment primary key, nome_user varchar(70), senha_user varchar(20), email_user varchar(70), tel_user varchar(15));
+
+create table cliente(id_cli int auto_increment primary key, NomeCliente varchar(70), email_cli varchar(70), tel_cli varchar(15));
+
+create table projeto(Código int auto_increment primary key, id_pcli int, foreign key(id_pcli) references cliente(id_cli), id_puser int, foreign key(id_puser) 
+references usuario(id_user), NomeProjeto varchar(50), ART varchar(50), Endereço varchar(70), Cidade varchar(70));
+
+create table objCalcMat(id_objCalcMat int auto_increment primary key, nome_objCalcMat varchar(50), altura int, largura int);
+
+create table amb_proj (id_ambproj int auto_increment primary key, ambiente_ambproj varchar(50), id_approj int, foreign key(id_approj) references projeto(Código),
+						id_apobjCalcMat int, foreign key(id_apobjCalcMat) references objCalcMat(id_objCalcMat), medida float);
+
+create table categoria(id_categ int auto_increment primary key, nome_categ varchar(50));
+
+create table materiais(id_mat int auto_increment primary key, nome_mat varchar(50), id_mcateg int, foreign key(id_mcateg) references categoria(id_categ), 
+qntVenda_mat float, qntRendimento_mat float, Custo_mat float, Quebra_mat float);
+
+create table objCalcMat_mat(id_ocm int auto_increment primary key, quantidade int, id_ocmMat int, foreign key(id_ocmMat) references materiais(id_mat),
+id_ocmMatCalc int, foreign key(id_ocmMatCalc) references objCalcMat(id_objCalcMat), qntDmao_ocm int);
+INSERT INTO `usuario` (`id_user`, `nome_user`, `senha_user`, `email_user`, `tel_user`) VALUES (NULL, 'flavia', '123', 'flavia@gmail.com', '15981641578');
+INSERT INTO `cliente` (`id_cli`, `NomeCliente`, `email_cli`, `tel_cli`) VALUES (NULL, 'Nader', 'cliente@mail.com', '15981641579');
+INSERT INTO `cliente` (`id_cli`, `NomeCliente`, `email_cli`, `tel_cli`) VALUES (NULL, 'Murilo', 'cliente@mail.com', '15981641579');
+INSERT INTO `projeto` (`Código`, `id_pcli`, `id_puser`, `NomeProjeto`, `ART`, `Endereço`, `Cidade`) VALUES (NULL, '1', '1', 'projetoInicial', '123', 'Rua Joao Correa', 'Sorocaba');
+
+select * from projeto;
