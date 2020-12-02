@@ -1,24 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package dao.mysql;
 
 import dao.interfaces.IMateriaisDAO;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import models.Materiais;
+import models.Material;
+import models.Projeto;
 
-/**
- *
- * @author ngarcia
- */
 public class MateriaisDAO implements IMateriaisDAO {
 
     private Connection conn;
@@ -26,55 +19,153 @@ public class MateriaisDAO implements IMateriaisDAO {
     public MateriaisDAO() {
         conn = ConnectionFactory.getConnection();
     }
-
-    @Override
-    public void inserir(Materiais materiais) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void editar(Materiais materiais) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void excluir(int id_mat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ArrayList<Materiais> selecionar() {
-        ArrayList<Materiais> listaMaterial = new ArrayList<>();
+           
+    public void Inserir(Material material) {
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("select * from materiais");
-            while (rs.next()) {
-                listaMaterial.add(
-                        new Materiais(
-                                rs.getInt("id_mat"),
-                                rs.getString("nome_mat"),
-                                rs.getInt("id_mcateg"),
-                                rs.getFloat("qntVenda_mat"),
-                                rs.getFloat("qntRendimento_mat"),
-                                rs.getFloat("Custo_mat"),
-                                rs.getFloat("Quebra_mat")));
-            }
+            String sql = "Insert Into Material (Descricao, Altura, Largura, QuantidadeLote, "
+                    .concat(" Rendimento, Custo, Quebra, IdMaterialTipo)")
+                    .concat(" Values (?,?,?,?,?,?,?,?,?) ");
+            
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, material.getDescricao());
+            stmt.setFloat(2, material.getAltura());
+            stmt.setFloat(3, material.getLargura());
+            stmt.setFloat(4, material.getQuantidadeLote());
+            stmt.setFloat(5, material.getRendimento());
+            stmt.setFloat(6, material.getCusto());
+            stmt.setFloat(7, material.getQuebra());
+            stmt.setFloat(8, material.getIdMaterialTipo());
+            stmt.execute();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void Editar(Material material) {
+         try {
+            String sql = "Update Material Set Descricao = ?, Altura = ?, Largura = ?, QuantidadeLote = ?, "
+                    .concat(" Rendimento = ?, Custo = ?, Quebra = ? ")
+                    .concat(" Where Id = ? ");
+            
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, material.getDescricao());
+            stmt.setFloat(2, material.getAltura());
+            stmt.setFloat(3, material.getLargura());
+            stmt.setFloat(4, material.getQuantidadeLote());
+            stmt.setFloat(5, material.getRendimento());
+            stmt.setFloat(6, material.getCusto());
+            stmt.setFloat(7, material.getQuebra());
+            stmt.setFloat(8, material.getId());            
+            stmt.execute();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    @Override
+    public void Salvar(ArrayList<Material> materiais) {
+        for(Material material : materiais)
+        {
+            Salvar(material);
+        }
+    }
+    
+    @Override
+    public void Salvar(Material material) {        
+        if(material.getId() > 0){
+            Editar(material);           
+        }
+        else
+        {
+            Inserir(material);
+        }                      
+    }
+    
+    @Override
+    public void Excluir(int id) {
+        try {                                    
+            String sql = "Delete From Material Where Id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, id);
+            stmt.execute();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }    
+    
+    @Override
+    public ArrayList<Material> Selecionar() {
+        ArrayList<Material> listaMateriais = null;
+        try {
+            String query = "Select * From Material";
+            Statement stmt = conn.createStatement();           
+            ResultSet rs = stmt.executeQuery(query);
+            
+            listaMateriais = DadosParaLista(rs);
+            
             stmt.close();
 
         } catch (SQLException ex) {
-            Logger.getLogger(ClienteDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientesDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return listaMaterial;
+        
+        return listaMateriais;
     }
-
+    
     @Override
-    public Materiais selecionarPorCodigo(int id_mat) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Material SelecionarPorId(int id) {
+        Material material = null;
+        try {
+            String query = "Select * From Material Where Id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                material = DadoParaObjeto(rs);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return material;
     }
-
-    @Override
-    public ResultSet selecionarTabela() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    
+    private ArrayList<Material> DadosParaLista(ResultSet dados) {
+        ArrayList<Material> listaMaterial = new ArrayList<>();
+        
+        try {
+            while (dados.next()) {
+                listaMaterial.add(DadoParaObjeto(dados));        
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ClientesDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         
+        return listaMaterial;         
+    }
+    
+    private Material DadoParaObjeto(ResultSet dado) { 
+        Material material = null;
+        try {
+            material = new Material(
+                        dado.getInt("Id"),
+                        dado.getInt("IdMaterialTipo"),                        
+                        dado.getString("Descricao"),
+                        dado.getFloat("Altura"),
+                        dado.getFloat("Largura"),
+                        dado.getFloat("QuantidadeLote"),
+                        dado.getFloat("Rendimento"),
+                        dado.getFloat("Custo"),
+                        dado.getFloat("Quebra")
+                        
+            );                 
+        } catch (SQLException ex) {
+            Logger.getLogger(ClientesDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return material;        
     }
 
 }

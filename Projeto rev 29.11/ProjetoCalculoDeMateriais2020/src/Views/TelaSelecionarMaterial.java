@@ -163,13 +163,13 @@ public class TelaSelecionarMaterial extends javax.swing.JFrame {
     }//GEN-LAST:event_btnNovoMaterialActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-        TelaObjeto t = new TelaObjeto(null, true,0);
+        TelaObjeto t = new TelaObjeto(null, true,0, 0);
         t.setVisible(true);
          dispose();
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        TelaObjeto t = new TelaObjeto(null, true,0);
+        TelaObjeto t = new TelaObjeto(null, true,0, 0);
         t.setVisible(true);
          dispose();
     }//GEN-LAST:event_jButton1ActionPerformed

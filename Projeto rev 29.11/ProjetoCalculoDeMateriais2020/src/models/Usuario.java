@@ -10,90 +10,59 @@ package models;
  * @author ngarcia
  */
 public class Usuario {
-    private int id_user;
-    private String nome_user;
-    private String senha_user;
-    private String email_user;
-    private String tel_user;
-    
-    public Usuario(){}
-    public Usuario(int id_user, String nome_user, String senha_user, String email_user,String tel_user ){
-    this.id_user = id_user;
-    this.nome_user = nome_user;
-    this.senha_user = senha_user;
-    this.email_user = email_user;
-    this.tel_user = tel_user;    
-    
+    private int Id;
+    private String Login;
+    private String Senha;
+    private String Email;
+    private String Telefone;
+        
+    public Usuario(int Id, String Login, String Senha, String Email,
+            String Telefone){
+        this.Id = Id;
+        this.Login = Login;
+        this.Senha = Senha;
+        this.Email = Email;
+        this.Telefone = Telefone;    
     }
 
-    /**
-     * @return the id_user
-     */
-    public int getId_user() {
-        return id_user;
+    public int getId() {
+        return Id;
     }
 
-    /**
-     * @param id_user the id_user to set
-     */
-    public void setId_user(int id_user) {
-        this.id_user = id_user;
+    public void setId(int Id) {
+        this.Id = Id;
     }
 
-    /**
-     * @return the nome_user
-     */
-    public String getNome_user() {
-        return nome_user;
+    public String getLogin() {
+        return Login;
     }
 
-    /**
-     * @param nome_user the nome_user to set
-     */
-    public void setNome_user(String nome_user) {
-        this.nome_user = nome_user;
+    public void setLogin(String Login) {
+        this.Login = Login;
     }
 
-    /**
-     * @return the senha_user
-     */
-    public String getSenha_user() {
-        return senha_user;
+    public String getSenha() {
+        return Senha;
     }
 
-    /**
-     * @param senha_user the senha_user to set
-     */
-    public void setSenha_user(String senha_user) {
-        this.senha_user = senha_user;
+    public void setSenha(String Senha) {
+        this.Senha = Senha;
     }
 
-    /**
-     * @return the email_user
-     */
-    public String getEmail_user() {
-        return email_user;
+    public String getEmail() {
+        return Email;
     }
 
-    /**
-     * @param email_user the email_user to set
-     */
-    public void setEmail_user(String email_user) {
-        this.email_user = email_user;
+    public void setEmail(String Email) {
+        this.Email = Email;
     }
 
-    /**
-     * @return the tel_user
-     */
-    public String getTel_user() {
-        return tel_user;
+    public String getTelefone() {
+        return Telefone;
     }
 
-    /**
-     * @param tel_user the tel_user to set
-     */
-    public void setTel_user(String tel_user) {
-        this.tel_user = tel_user;
+    public void setTelefone(String Telefone) {
+        this.Telefone = Telefone;
     }
     
 }

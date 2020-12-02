@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Views;
 
 import dao.mysql.ProjetoDAO;
@@ -16,28 +11,26 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
+import models.Usuario;
 
-/**
- *
- * @author Flavia
- */
 public class TelaSelecionarProjeto extends javax.swing.JFrame {
-
-    private String UsuarioLogado = "";
+    
+    private Usuario usuarioLogado = null;
+    private ProjetoDAO projetoDao = null;
     private int codigoSelecionado = 0;
 
     private static TelaSelecionarProjeto myInstance;
-    private ProjetoDAO projeDAO;
 
     public TelaSelecionarProjeto() {
-        TelaLogin login = new TelaLogin(null, true);
-        login.setVisible(true);
-
-        UsuarioLogado = login.getUsuario();
-        if (!UsuarioLogado.equals("")) {
+        TelaLogin telaLogin = new TelaLogin(null, true);
+        telaLogin.setVisible(true);
+        
+        if (telaLogin.LoginSucesso()) {
             initComponents();
         }
-        projeDAO = new ProjetoDAO();
+        
+        usuarioLogado = telaLogin.ObterUsuarioLogado();
+        projetoDao = new ProjetoDAO();
     }
 
     public static TelaSelecionarProjeto getInstance() {
@@ -156,11 +149,10 @@ public class TelaSelecionarProjeto extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnNovoProjetoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoProjetoActionPerformed
-        TelaCadastroProjeto tela = new TelaCadastroProjeto(null, true, 0);
+        TelaCadastroProjeto tela = new TelaCadastroProjeto(null, true, 0, usuarioLogado);
         tela.setVisible(true);
         atualizaTabela();
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
+        ControleBotoes(false);
     }//GEN-LAST:event_btnNovoProjetoActionPerformed
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
@@ -170,59 +162,54 @@ public class TelaSelecionarProjeto extends javax.swing.JFrame {
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-
-        if (JOptionPane.showConfirmDialog(this, "Deseja sair do programa?", "Atenção",
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+        
+        int option = JOptionPane.showConfirmDialog(this, "Deseja sair do programa?", "Atenção", JOptionPane.YES_NO_OPTION);        
+        if ( option == JOptionPane.YES_OPTION) {
             setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         }
     }//GEN-LAST:event_formWindowClosing
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
-        // TODO add your handling code here:
-        TelaCadastroProjeto tela = new TelaCadastroProjeto(null, true, codigoSelecionado);
+        TelaCadastroProjeto tela = new TelaCadastroProjeto(null, true, codigoSelecionado, usuarioLogado);
         tela.setVisible(true);
         atualizaTabela();
-        btnEditar.setEnabled(false);
-        btnExcluir.setEnabled(false);
+        ControleBotoes(false);
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
         // TODO add your handling code here:
         if (codigoSelecionado != 0) {
-            if (JOptionPane.showConfirmDialog(this, "Deseja excluir esse Projeto?", "Atenção",
-                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                projeDAO.excluir(codigoSelecionado);
-                atualizaTabela();
-                codigoSelecionado = 0;
-                btnEditar.setEnabled(false);
-                btnExcluir.setEnabled(false);
+            int opcaoSelecionada = JOptionPane.showConfirmDialog(this, "Deseja excluir esse Projeto?", "Atenção", JOptionPane.YES_NO_OPTION);
+            if (opcaoSelecionada == JOptionPane.YES_OPTION) {
+                projetoDao.Excluir(codigoSelecionado);                
+                atualizaTabela();                
+                codigoSelecionado = 0;                
+                ControleBotoes(false);
             }
         }
     }//GEN-LAST:event_btnExcluirActionPerformed
 
     private void tblProjetoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblProjetoMouseClicked
-        // TODO add your handling code here:
         JTable tabela = (JTable) evt.getSource();
         int row = tabela.rowAtPoint(evt.getPoint());
-        //int column = source.columnAtPoint(evt.getPoint());
-
+        
         String codigo = tabela.getModel().getValueAt(row, 0) + "";
-        btnEditar.setEnabled(true);
-        btnExcluir.setEnabled(true);
-
         codigoSelecionado = Integer.parseInt(codigo);
+        
+        ControleBotoes(true);
     }//GEN-LAST:event_tblProjetoMouseClicked
+    
     public void atualizaTabela() {
-        ResultSet rs = projeDAO.selecionarTabela();
+        ResultSet rs = projetoDao.SelecionarTabela();
         try {
             ResultSetMetaData metaData = rs.getMetaData();
-// names of columns
+
             Vector<String> columnNames = new Vector<String>();
             int columnCount = metaData.getColumnCount();
             for (int column = 1; column <= columnCount; column++) {
                 columnNames.add(metaData.getColumnName(column));
             }
-// data of the table
+
             Vector<Vector<Object>> data = new Vector<Vector<Object>>();
             while (rs.next()) {
                 Vector<Object> vector = new Vector<Object>();
@@ -238,6 +225,11 @@ public class TelaSelecionarProjeto extends javax.swing.JFrame {
             Logger.getLogger(TelaSelecionarProjeto.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    private void ControleBotoes(boolean status) {
+        btnEditar.setEnabled(status);
+        btnExcluir.setEnabled(status);
+    }           
 
     /**
      * @param args the command line arguments

@@ -1,47 +1,31 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Views;
 
-import dao.mysql.AmbienteDAO;
+import dao.mysql.AmbientesDAO;
 import dao.mysql.ObjetoDAO;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import models.AmbienteProjeto;
+import models.Ambiente;
+import models.TabelaBase;
 
-/**
- *
- * @author ngarcia
- */
 public class TelaAmbiente extends javax.swing.JDialog {
 
-    private AmbienteDAO ambDAO;
-    private ObjetoDAO objDAO;
-    private int codigoSelecionadoAmb;
-    private int codigoSelecionadoObj;
-    private int codigoSelecionadoProj;
+    private AmbientesDAO ambienteDao = null;
+    private ObjetoDAO objetoDao = null;
+    private int codigoSelecionadoAmb = 0;
+    private int codigoSelecionadoObj = 0;
+    private int codigoSelecionadoProj = 0;
 
     public TelaAmbiente(java.awt.Frame parent, boolean modal, int codigoSelecionadoAmb, int codigoSelecionadoProj) {
         super(parent, modal);
         initComponents();
-        objDAO = new ObjetoDAO();
-        ambDAO = new AmbienteDAO();
+        objetoDao = new ObjetoDAO();
+        ambienteDao = new AmbientesDAO();
         this.codigoSelecionadoProj = codigoSelecionadoProj;
         this.codigoSelecionadoAmb = codigoSelecionadoAmb;
         if (codigoSelecionadoAmb != 0) {
-            btnObjeto.setEnabled(true);
-
+            btnNovoObjeto.setEnabled(true);
         }
-
     }
 
     /**
@@ -54,15 +38,16 @@ public class TelaAmbiente extends javax.swing.JDialog {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        btnObjeto = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        btnNovoObjeto = new javax.swing.JButton();
+        btnSalvar = new javax.swing.JButton();
         btnExcluirObjeto = new javax.swing.JButton();
         lblAmbiente = new javax.swing.JLabel();
-        txtNome = new javax.swing.JTextField();
+        txtDescricao = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        btnCancelar = new javax.swing.JButton();
         scrTabela = new javax.swing.JScrollPane();
         tblObjeto = new javax.swing.JTable();
+        btnEditarObjeto = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -74,18 +59,18 @@ public class TelaAmbiente extends javax.swing.JDialog {
             }
         });
 
-        btnObjeto.setText("Novo Cadastro");
-        btnObjeto.setEnabled(false);
-        btnObjeto.addActionListener(new java.awt.event.ActionListener() {
+        btnNovoObjeto.setText("Novo");
+        btnNovoObjeto.setEnabled(false);
+        btnNovoObjeto.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnObjetoActionPerformed(evt);
+                btnNovoObjetoActionPerformed(evt);
             }
         });
 
-        jButton3.setText("Salvar ");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        btnSalvar.setText("Salvar ");
+        btnSalvar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                btnSalvarActionPerformed(evt);
             }
         });
 
@@ -99,18 +84,12 @@ public class TelaAmbiente extends javax.swing.JDialog {
 
         lblAmbiente.setText("Cadastro de Ambiente");
 
-        txtNome.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtNomeActionPerformed(evt);
-            }
-        });
+        jLabel1.setText("Descrição");
 
-        jLabel1.setText(" Nome");
-
-        jButton1.setText("Voltar");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnCancelar.setText("Cancelar");
+        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnCancelarActionPerformed(evt);
             }
         });
 
@@ -129,6 +108,15 @@ public class TelaAmbiente extends javax.swing.JDialog {
         });
         scrTabela.setViewportView(tblObjeto);
 
+        btnEditarObjeto.setText("Editar");
+        btnEditarObjeto.setActionCommand("Editar");
+        btnEditarObjeto.setEnabled(false);
+        btnEditarObjeto.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditarObjetoActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -137,27 +125,27 @@ public class TelaAmbiente extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(btnExcluirObjeto)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 134, Short.MAX_VALUE)
-                        .addComponent(btnObjeto)
-                        .addGap(88, 88, 88))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(txtNome)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1)
-                        .addGap(30, 30, 30)
-                        .addComponent(jButton3)
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnSalvar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnCancelar)
                         .addGap(19, 19, 19))
                     .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(btnExcluirObjeto)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnEditarObjeto)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnNovoObjeto))
+                            .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 371, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lblAmbiente))
-                        .addContainerGap())))
-            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 371, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(19, Short.MAX_VALUE)))
+                            .addComponent(lblAmbiente)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 371, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(19, Short.MAX_VALUE))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -167,20 +155,19 @@ public class TelaAmbiente extends javax.swing.JDialog {
                 .addGap(15, 15, 15)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(171, 171, 171)
+                    .addComponent(btnNovoObjeto)
+                    .addComponent(btnExcluirObjeto)
+                    .addComponent(btnEditarObjeto))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnObjeto)
-                    .addComponent(btnExcluirObjeto))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addGap(104, 104, 104)
-                    .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(56, Short.MAX_VALUE)))
+                    .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(24, 24, 24))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -191,114 +178,55 @@ public class TelaAmbiente extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        setSize(new java.awt.Dimension(416, 357));
+        setSize(new java.awt.Dimension(416, 385));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnObjetoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnObjetoActionPerformed
-        TelaObjeto t = new TelaObjeto(null, true, codigoSelecionadoAmb);
-        t.setVisible(true);
-        atualizaTabelaObjeto();
-    }//GEN-LAST:event_btnObjetoActionPerformed
+    private void btnNovoObjetoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNovoObjetoActionPerformed
+       AbrirTelaObjetoNovo();
+    }//GEN-LAST:event_btnNovoObjetoActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        AmbienteProjeto amb = new AmbienteProjeto();
+    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
+        SalvarAmbiente();
+    }//GEN-LAST:event_btnSalvarActionPerformed
 
-        amb.setNome(txtNome.getText());
-        amb.setId_projeto(codigoSelecionadoProj);
-        if (codigoSelecionadoAmb == 0) {
-            ambDAO.inserir(amb);
-        } else {
-            amb.setId(codigoSelecionadoAmb);
-            ambDAO.editar(amb);
-        }
-
-        JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
-
+    private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         dispose();
-    }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        dispose();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnCancelarActionPerformed
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        if (codigoSelecionadoAmb > 0) {
-            AmbienteProjeto amb = ambDAO.selecionarPorCodigo(codigoSelecionadoAmb);
-            txtNome.setText(amb.getNome());
-
-        }
+        CarregarTelaAmbiente();
     }//GEN-LAST:event_formWindowActivated
 
     private void tblObjetoMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblObjetoMouseClicked
         JTable tabela = (JTable) evt.getSource();
         int row = tabela.rowAtPoint(evt.getPoint());
-        //int column = source.columnAtPoint(evt.getPoint());
 
         String codigo = tabela.getModel().getValueAt(row, 0) + "";
-
-        btnExcluirObjeto.setEnabled(true);
+        
         codigoSelecionadoObj = Integer.parseInt(codigo);
-//        btnEdit.setEnabled(true);
+        
+        btnExcluirObjeto.setEnabled(true);
+        btnEditarObjeto.setEnabled(true);
     }//GEN-LAST:event_tblObjetoMouseClicked
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        atualizaTabelaObjeto();
+        AtualizaTabelaObjeto();
     }//GEN-LAST:event_formWindowOpened
 
-    private void txtNomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNomeActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtNomeActionPerformed
-
     private void btnExcluirObjetoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirObjetoActionPerformed
-        if (codigoSelecionadoObj != 0) {
-            if (JOptionPane.showConfirmDialog(this, "Deseja excluir esse Objeto?", "Atenção",
-                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                objDAO.excluir(codigoSelecionadoObj);
-                atualizaTabelaObjeto();
-                codigoSelecionadoObj = 0;
-                btnExcluirObjeto.setEnabled(false);
-            }
-        }
+        ExcluirObjeto();
     }//GEN-LAST:event_btnExcluirObjetoActionPerformed
-    public void atualizaTabelaObjeto() {
-        if (codigoSelecionadoAmb != 0) {
-            ResultSet tbl = objDAO.selecionarTabela(codigoSelecionadoAmb);
-            try {
-                ResultSetMetaData metaData = tbl.getMetaData();
-// names of columns
-                Vector<String> columnNamesTbl = new Vector<String>();
-                int columnCount = metaData.getColumnCount();
-                for (int column = 1; column <= columnCount; column++) {
-                    columnNamesTbl.add(metaData.getColumnName(column));
-                }
-// data of the table
-                Vector<Vector<Object>> dataTbl = new Vector<Vector<Object>>();
-                while (tbl.next()) {
-                    Vector<Object> vectorTbl = new Vector<Object>();
-                    for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-                        vectorTbl.add(tbl.getObject(columnIndex));
-                    }
-                    dataTbl.add(vectorTbl);
-                }
-                tblObjeto.setModel(new DefaultTableModel(dataTbl, columnNamesTbl));
-                int vColIndex = 0;
-                tblObjeto.getColumnModel().getColumn(vColIndex).setHeaderValue("Código Objeto");
-                tblObjeto.getColumnModel().getColumn(1).setHeaderValue("Nome Objeto");
-                tblObjeto.getColumnModel().getColumn(2).setHeaderValue("Altura");
-                tblObjeto.getColumnModel().getColumn(3).setHeaderValue("Largura");
-            } catch (SQLException ex) {
-                Logger.getLogger(TelaSelecionarProjeto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
 
+    private void btnEditarObjetoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarObjetoActionPerformed
+        AbrirTelaObjetoEditar();
+    }//GEN-LAST:event_btnEditarObjetoActionPerformed
+    
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -339,15 +267,76 @@ public class TelaAmbiente extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCancelar;
+    private javax.swing.JButton btnEditarObjeto;
     private javax.swing.JButton btnExcluirObjeto;
-    private javax.swing.JButton btnObjeto;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton btnNovoObjeto;
+    private javax.swing.JButton btnSalvar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lblAmbiente;
     private javax.swing.JScrollPane scrTabela;
     private javax.swing.JTable tblObjeto;
-    private javax.swing.JTextField txtNome;
+    private javax.swing.JTextField txtDescricao;
     // End of variables declaration//GEN-END:variables
+
+
+    private void CarregarTelaAmbiente() {
+        if (codigoSelecionadoAmb > 0) {
+            Ambiente amb = ambienteDao.SelecionarPorId(codigoSelecionadoAmb);
+            txtDescricao.setText(amb.getDescricao());
+        }
+    }
+    
+    private void AbrirTelaObjetoNovo(){
+        TelaObjeto telaObjeto = new TelaObjeto(null, true, codigoSelecionadoAmb, 0);
+        telaObjeto.setVisible(true);
+        
+        AtualizaTabelaObjeto();
+    }
+    
+    private void AbrirTelaObjetoEditar(){
+        TelaObjeto telaObjeto = new TelaObjeto(null, true, codigoSelecionadoAmb, this.codigoSelecionadoObj);
+        telaObjeto.setVisible(true);
+        
+        AtualizaTabelaObjeto();
+    }
+    
+    public void AtualizaTabelaObjeto() {
+        if (codigoSelecionadoAmb != 0) {            
+            TabelaBase tabela = new TabelaBase(objetoDao.SelecionarTabelaPorIdAmbiente(this.codigoSelecionadoAmb));
+
+            tblObjeto.setModel(new DefaultTableModel(tabela.ObterDados(), tabela.ObterColuna()));                
+            tblObjeto.getColumnModel().getColumn(0).setHeaderValue("Código Objeto");
+            tblObjeto.getColumnModel().getColumn(1).setHeaderValue("Nome Objeto");
+            tblObjeto.getColumnModel().getColumn(2).setHeaderValue("Altura");
+            tblObjeto.getColumnModel().getColumn(3).setHeaderValue("Largura");            
+        }
+    }
+        
+    private void SalvarAmbiente() {
+        String descricao = txtDescricao.getText();
+        Ambiente ambiente = new Ambiente(this.codigoSelecionadoAmb, descricao, this.codigoSelecionadoProj);
+        
+        ambienteDao.Salvar(ambiente);
+            
+        JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
+
+        dispose();
+    }
+    
+    private void ExcluirObjeto() {
+        if (codigoSelecionadoObj != 0) {
+            int opcaoSelecionada = JOptionPane.showConfirmDialog(this, "Deseja excluir esse Objeto?", "Atenção",JOptionPane.YES_NO_OPTION);
+            if (opcaoSelecionada == JOptionPane.YES_OPTION) {
+                objetoDao.Excluir(codigoSelecionadoObj);
+                
+                AtualizaTabelaObjeto();
+                
+                codigoSelecionadoObj = 0;                
+                btnExcluirObjeto.setEnabled(false);
+                btnEditarObjeto.setEnabled(false);
+            }
+        }
+    }
 }

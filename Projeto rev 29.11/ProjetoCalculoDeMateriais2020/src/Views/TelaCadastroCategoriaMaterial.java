@@ -113,7 +113,7 @@ public class TelaCadastroCategoriaMaterial extends javax.swing.JFrame {
     }//GEN-LAST:event_BtnCadastrarCategoriaActionPerformed
 
     private void BtnVoltarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BtnVoltarActionPerformed
-        TelaObjeto t = new TelaObjeto(null, true,0);
+        TelaObjeto t = new TelaObjeto(null, true,0, 0);
         t.setVisible(true);
     }//GEN-LAST:event_BtnVoltarActionPerformed
 
