@@ -1,0 +1,111 @@
+drop database projeto;
+create database projeto;
+use projeto;
+
+create table Usuario(
+	Id int auto_increment primary key, 
+	Login varchar(70), 
+	Senha varchar(20), 
+	Email varchar(70), 
+	Telefone varchar(15)	
+);
+
+create table Cliente(
+	Id int auto_increment primary key, 
+	Nome varchar(70), 
+	Email varchar(70), 
+	Telefone varchar(15)
+);
+
+create table Projeto(
+	Id int auto_increment primary key, 
+	IdCliente int, foreign key(IdCliente) references Cliente(Id), 
+	IdUsuario int, foreign key(IdUsuario) references Usuario(Id), 
+	Descricao varchar(50), 
+	ART varchar(50), 
+	Endereco varchar(70), 
+	Cidade varchar(70)
+);
+
+create table Ambiente (
+	Id int auto_increment primary key, 
+	Descricao varchar(50), 
+	IdProjeto int, foreign key(IdProjeto) references Projeto(Id)
+);
+
+create table Objeto(
+	Id int auto_increment primary key, 
+	Descricao varchar(50), 
+	Altura float, 
+	Largura float, 
+	Area float,						
+	IdAmbiente int, foreign key(IdAmbiente) references Ambiente(Id)
+);
+                        
+create table Recorte(
+	Id int auto_increment primary key, 
+	Descricao varchar(50), altura float, 
+	Largura float, 
+	Area float,
+	IdObjeto int, foreign key(IdObjeto) references Objeto(Id)
+);                       
+
+create table MaterialTipo(
+	Id int auto_increment primary key, 
+	Descricao varchar(50)
+);
+
+create table Material(
+	Id int auto_increment primary key, 
+	Descricao varchar(50), 
+	Altura float, 
+	Largura float,	
+	QuantidadeLote float, 
+	Rendimento float,
+	Custo float, 
+	Quebra float,
+	IdMaterialTipo int, foreign key(IdMaterialTipo) references MaterialTipo(Id)	
+);
+
+create table MaterialCalculado(
+	Id int auto_increment primary key, 
+	Quantidade int, 
+	QuantidadeDeMao int,
+	CustoTotal float,
+	CustoMetro2 float,
+	IdMaterial int, foreign key(IdMaterial) references Material(Id),
+	IdObjeto int, foreign key(IdObjeto) references Objeto(Id)	
+);
+
+
+INSERT INTO `Usuario` (`Id`, `Login`, `Senha`, `Email`, `Telefone`) 
+VALUES (NULL, 'flavia', '123', 'flavia@gmail.com', '15981641578');
+
+INSERT INTO `Cliente` (`Id`, `Nome`, `Email`, `Telefone`) 
+VALUES (NULL, 'Nader', 'cliente@mail.com', '15981641579');
+INSERT INTO `Cliente` (`Id`, `Nome`, `Email`, `Telefone`) 
+VALUES (NULL, 'Murilo', 'cliente@mail.com', '15981641579');
+
+INSERT INTO `MaterialTipo` (`Id`, `Descricao`) 
+VALUES (NULL, 'Aproveitamento');
+INSERT INTO `MaterialTipo` (`Id`, `Descricao`) 
+VALUES (NULL, 'Lote');
+INSERT INTO `MaterialTipo` (`Id`, `Descricao`) 
+VALUES (NULL, 'Unitario');
+
+INSERT INTO `Projeto` (`Id`, `IdCliente`, `IdUsuario`, `Descricao`, `ART`, `Endereco`, `Cidade`) 
+VALUES (NULL, '1', '1', 'projetoInicial', '123', 'Rua Joao Correa', 'Sorocaba');
+
+INSERT INTO `Material` (`Id`, `Descricao`, `IdMaterialTipo`, `QuantidadeLote`, `Rendimento`, `Custo`, `Quebra`,  `Altura`, `Largura`) 
+VALUES (NULL, 'Tinta Suvinil', '1', '10.00', '3', '20.00', '2', NULL, NULL);
+INSERT INTO `Material` (`Id`, `Descricao`, `IdMaterialTipo`, `QuantidadeLote`, `Rendimento`, `Custo`, `Quebra`, `Altura`, `Largura`) 
+VALUES ('2', 'Tinta Coral', '1', '10.00', '3', '20.00', '2', NULL, NULL);
+
+INSERT INTO `Ambiente` (`Id`, `Descricao`, `IdProjeto`) 
+VALUES (NULL, 'Quarto', '1'), (NULL, 'Sala', '1');
+
+INSERT INTO `Objeto` (`Id`, `Descricao`, `Altura`, `Largura`, `IdAmbiente`) 
+VALUES (NULL, 'Parede', '3', '3', '1');
+
+INSERT INTO `Recorte` (`Id`, `Descricao`, `Altura`, `Largura`, `IdObjeto`) 
+VALUES (NULL, 'Janela', '1', '1', '1');

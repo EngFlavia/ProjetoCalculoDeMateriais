@@ -1,23 +1,14 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Views;
 
-import dao.mysql.UsuarioDAO;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import dao.mysql.UsuariosDAO;
 import javax.swing.JOptionPane;
+import models.Usuario;
 
 public class TelaLogin extends javax.swing.JDialog {
-
-    private String usuario = "";
-    private UsuarioDAO usuDAO = null;
-    public String getUsuario() {
-        return usuario;
-    }
+   
+    private Usuario usuarioLogado = null;
+    private boolean loginSucesso = false;
+    private UsuariosDAO usuarioDao = null;
 
     public TelaLogin() {
         initComponents();
@@ -25,18 +16,10 @@ public class TelaLogin extends javax.swing.JDialog {
 
     public TelaLogin(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
-        usuDAO = new UsuarioDAO();
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                if (usuario.equals("")) {
-                    System.exit(0);
-                }
-            }
-
-        });
+        usuarioDao = new UsuariosDAO();
 
         initComponents();
+                
     }
 
     /**
@@ -49,28 +32,23 @@ public class TelaLogin extends javax.swing.JDialog {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        txtUsuario = new javax.swing.JTextField();
+        txtLogin = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         txtSenha = new javax.swing.JPasswordField();
-        jButton1 = new javax.swing.JButton();
+        btnEntrar = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setText("Usuário");
+        jLabel1.setText("Login");
 
         jLabel2.setText("Senha");
 
-        txtSenha.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                txtSenhaKeyPressed(evt);
-            }
-        });
-
-        jButton1.setText("Entrar");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnEntrar.setText("Entrar");
+        btnEntrar.setName("btnEntrar"); // NOI18N
+        btnEntrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnEntrarActionPerformed(evt);
             }
         });
 
@@ -90,13 +68,13 @@ public class TelaLogin extends javax.swing.JDialog {
                                     .addComponent(jLabel1)))
                             .addGroup(layout.createSequentialGroup()
                                 .addContainerGap(81, Short.MAX_VALUE)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(78, 78, 78))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtSenha)
-                            .addComponent(txtUsuario))))
+                            .addComponent(txtLogin))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -107,13 +85,13 @@ public class TelaLogin extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(28, 28, 28)
                 .addComponent(jLabel2)
                 .addGap(18, 18, 18)
                 .addComponent(txtSenha, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(33, 33, 33)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEntrar, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(36, 36, 36))
         );
 
@@ -121,37 +99,37 @@ public class TelaLogin extends javax.swing.JDialog {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-         if (usuDAO.autenticar(txtUsuario.getText(),txtSenha.getText())) {
-            usuario = txtUsuario.getText();
-            dispose();
+    private void btnEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEntrarActionPerformed
+         Logar();
+    }//GEN-LAST:event_btnEntrarActionPerformed
+   
+    private void Logar() {
+        String login = txtLogin.getText();
+        String senha = txtSenha.getText();
+        
+        if (usuarioDao.Autenticar(login, senha)) {           
+            usuarioLogado = usuarioDao.ObterPorLogin(login);   
+            loginSucesso = true;
+            this.dispose();
         } else {
-            JOptionPane.showMessageDialog(this, "Usuário ou Senha Inválida", "Atenção", JOptionPane.ERROR_MESSAGE);
-            usuario = "";
+            usuarioLogado = null;
+            loginSucesso = false;
+            JOptionPane.showMessageDialog(this, "Login ou Senha Inválida", "Atenção", JOptionPane.ERROR_MESSAGE);            
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void txtSenhaKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSenhaKeyPressed
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER){
-                 if (usuDAO.autenticar(txtUsuario.getText(),txtSenha.getText())) {
-            usuario = txtUsuario.getText();
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Usuário ou Senha Inválida", "Atenção", JOptionPane.ERROR_MESSAGE);
-            usuario = "";
-        }
-        }
-    }//GEN-LAST:event_txtSenhaKeyPressed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
+    }
+    
+    public Usuario ObterUsuarioLogado()
+    {
+        return this.usuarioLogado;
+    }
+    
+    public boolean  LoginSucesso()
+    {
+        return this.loginSucesso;
+    }
+    
+    public static void main(String args[]) {        
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">     
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -186,11 +164,11 @@ public class TelaLogin extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton btnEntrar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JTextField txtLogin;
     private javax.swing.JPasswordField txtSenha;
-    private javax.swing.JTextField txtUsuario;
     // End of variables declaration//GEN-END:variables
 }

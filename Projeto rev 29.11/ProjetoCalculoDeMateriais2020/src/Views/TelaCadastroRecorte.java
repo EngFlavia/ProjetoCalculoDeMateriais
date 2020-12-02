@@ -1,26 +1,21 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Views;
 
-import dao.mysql.ObjetoRecorteDAO;
+import dao.mysql.RecortesDAO;
 import javax.swing.JOptionPane;
-import models.ObjetoCalculoMaterialRecorte;
+import models.Recorte;
 
-/**
- *
- * @author ngarcia
- */
 public class TelaCadastroRecorte extends javax.swing.JDialog {
-
-    private ObjetoRecorteDAO objDAO;
-
-    public TelaCadastroRecorte(java.awt.Frame parent, boolean modal) {
+        
+    private int idObjetoSelecionado = 0;
+    private RecortesDAO recortesDao = null;
+    
+    public TelaCadastroRecorte(java.awt.Frame parent, boolean modal, int idObjeto) {
         super(parent, modal);
-        initComponents();
-        objDAO = new ObjetoRecorteDAO();
+        initComponents();     
+        
+        recortesDao = new RecortesDAO();
+        
+        this.idObjetoSelecionado = idObjeto;        
     }
 
     /**
@@ -35,7 +30,7 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
         txtLargura = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         txtAltura = new javax.swing.JTextField();
-        jButton3 = new javax.swing.JButton();
+        btnSalvar = new javax.swing.JButton();
         lblAmbiente = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         txtNome = new javax.swing.JTextField();
@@ -45,10 +40,10 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
 
         jLabel3.setText("Altura");
 
-        jButton3.setText("Salvar");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        btnSalvar.setText("Salvar");
+        btnSalvar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                btnSalvarActionPerformed(evt);
             }
         });
 
@@ -78,7 +73,7 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
                             .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButton3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnSalvar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2)
                             .addComponent(txtLargura, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(txtAltura, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -105,7 +100,7 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtAltura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(50, 50, 50)
-                .addComponent(jButton3)
+                .addComponent(btnSalvar)
                 .addContainerGap(28, Short.MAX_VALUE))
         );
 
@@ -113,20 +108,13 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        ObjetoCalculoMaterialRecorte obj = new ObjetoCalculoMaterialRecorte();
-
-        obj.setNome(txtNome.getText());
-        obj.setAltura(Float.parseFloat(txtAltura.getText()));
-        obj.setLargura(Float.parseFloat(txtLargura.getText()));
-        obj.setId_Objeto(1);
-
-        objDAO.inserir(obj);
+    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
+        SalvarRecorte();
 
         JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
 
         dispose();
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_btnSalvarActionPerformed
 
     private void txtNomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNomeActionPerformed
         // TODO add your handling code here:
@@ -162,7 +150,7 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                TelaCadastroRecorte dialog = new TelaCadastroRecorte(new javax.swing.JFrame(), true);
+                TelaCadastroRecorte dialog = new TelaCadastroRecorte(new javax.swing.JFrame(), true, 0);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -175,9 +163,7 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
+    private javax.swing.JButton btnSalvar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -186,4 +172,27 @@ public class TelaCadastroRecorte extends javax.swing.JDialog {
     private javax.swing.JTextField txtLargura;
     private javax.swing.JTextField txtNome;
     // End of variables declaration//GEN-END:variables
+
+    public void setIdObjetoSelecionado(int idObjeto)
+    {
+        this.idObjetoSelecionado = idObjeto;
+    }
+    
+    public int getIdObjetoSelecionado()
+    {
+        return this.idObjetoSelecionado;
+    }
+
+    private void SalvarRecorte()
+    {      
+        String descricao = txtNome.getText();
+        float altura = Float.parseFloat(txtAltura.getText());
+        float largura = Float.parseFloat(txtLargura.getText());
+        
+        Recorte recorte = new Recorte(0, descricao, altura, largura, getIdObjetoSelecionado());
+                
+        recortesDao.Salvar(recorte);                    
+    }
+    
+
 }

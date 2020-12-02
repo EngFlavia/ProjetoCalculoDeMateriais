@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Views;
 
 import com.itextpdf.kernel.geom.PageSize;
@@ -12,10 +7,16 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.TextAlignment;
+import dao.interfaces.IMateriaisCalculadoDAO;
+import dao.interfaces.IMateriaisDAO;
+import dao.interfaces.IObjetosDAO;
+import dao.interfaces.IRecortesDAO;
+import dao.interfaces.IRelatoriosDAO;
+import dao.mysql.MateriaisCalculadoDAO;
 import dao.mysql.MateriaisDAO;
-import dao.mysql.ObjetoCalculoDAO;
 import dao.mysql.ObjetoDAO;
-import dao.mysql.ObjetoRecorteDAO;
+import dao.mysql.RecortesDAO;
+import dao.mysql.RelatoriosDao;
 import java.io.FileNotFoundException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -29,32 +30,43 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import models.Materiais;
-import models.ObjetoCalculoMaterial;
-import models.ObjetoCalculoMaterialMateriais;
-import models.ObjetoCalculoMaterialRecorte;
+import models.Material;
+import models.MaterialCalculado;
+import models.Objeto;
+import models.Recorte;
+import models.TabelaBase;
 
-/**
- *
- * @author ngarcia
- */
 public class TelaObjeto extends javax.swing.JDialog {
+    private IObjetosDAO objetosDao = null;    
+    private IRecortesDAO recortesDao = null;
+    private IMateriaisDAO materiaisDao = null;
+    private IMateriaisCalculadoDAO materiaisCalculadoDao = null;
+    private IRelatoriosDAO relatoriosDao = null;
+        
+    private Objeto objetoCorrente = null;
+    
+    private int idAmbiente = 0;
+    private int idObjeto = 0;
+    private int idRecorteSelecionado = 0;
+    private int idMaterialCalculadoSelecionado = 0;
 
-    private ObjetoDAO objDAO;
-    private MateriaisDAO matDAO;
-    private ObjetoRecorteDAO objRDAO;
-    private ObjetoCalculoDAO calDAO;
-    private int id_ambiente;
-
-    public TelaObjeto(java.awt.Frame parent, boolean modal, int id_ambiente) {
+    public TelaObjeto(java.awt.Frame parent, boolean modal, int idAmbiente, int idObjeto) {
         super(parent, modal);
         initComponents();
-        this.id_ambiente = id_ambiente;
         
-        objDAO = new ObjetoDAO();
-        matDAO = new MateriaisDAO();
-        objRDAO = new ObjetoRecorteDAO();
-        calDAO = new ObjetoCalculoDAO();
+        this.objetoCorrente = new Objeto();
+        
+        btnCadastroRecorte.setVisible(false);
+        btnInserirMaterial.setVisible(false);
+        
+        setIdAmbiente(idAmbiente);
+        setIdObjeto(idObjeto);
+        
+        objetosDao = new ObjetoDAO(); 
+        recortesDao = new RecortesDAO();
+        materiaisDao = new MateriaisDAO(); 
+        relatoriosDao = new RelatoriosDao();
+        materiaisCalculadoDao = new MateriaisCalculadoDAO();
     }
 
     /**
@@ -67,52 +79,42 @@ public class TelaObjeto extends javax.swing.JDialog {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        txtAltura = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        txtNome = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
         txtLargura = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        txtDescricao = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        txtAltura = new javax.swing.JTextField();
         btnSalvar = new javax.swing.JButton();
-        BtnRecorte = new javax.swing.JButton();
+        btnCadastroRecorte = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        tblCalculo = new javax.swing.JTable();
-        jButton5 = new javax.swing.JButton();
+        tabelaMaterialCalculado = new javax.swing.JTable();
+        btnCancelar = new javax.swing.JButton();
         lblAmbiente = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         comboMaterial = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
         scrTabela = new javax.swing.JScrollPane();
-        tblRecorte = new javax.swing.JTable();
-        btnSalvar1 = new javax.swing.JButton();
-        txtQtd = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        txtQtdMao = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
+        tabelaRecorte = new javax.swing.JTable();
+        btnInserirMaterial = new javax.swing.JButton();
         btnImprimir = new javax.swing.JButton();
         jLabel8 = new javax.swing.JLabel();
-        lblAreaUtill = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowActivated(java.awt.event.WindowEvent evt) {
-                formWindowActivated(evt);
-            }
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
             }
         });
 
-        jLabel1.setText("Nome");
+        jLabel1.setText("Descrição");
 
-        txtAltura.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtAlturaActionPerformed(evt);
-            }
-        });
+        txtLargura.setText("0");
 
         jLabel2.setText("Largura");
 
         jLabel3.setText("Altura");
+
+        txtAltura.setText("0");
 
         btnSalvar.setText("Salvar");
         btnSalvar.addActionListener(new java.awt.event.ActionListener() {
@@ -121,14 +123,14 @@ public class TelaObjeto extends javax.swing.JDialog {
             }
         });
 
-        BtnRecorte.setText("Cadastro Recorte");
-        BtnRecorte.addActionListener(new java.awt.event.ActionListener() {
+        btnCadastroRecorte.setText("Cadastro Recorte");
+        btnCadastroRecorte.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                BtnRecorteActionPerformed(evt);
+                btnCadastroRecorteActionPerformed(evt);
             }
         });
 
-        tblCalculo.setModel(new javax.swing.table.DefaultTableModel(
+        tabelaMaterialCalculado.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -136,12 +138,12 @@ public class TelaObjeto extends javax.swing.JDialog {
 
             }
         ));
-        jScrollPane2.setViewportView(tblCalculo);
+        jScrollPane2.setViewportView(tabelaMaterialCalculado);
 
-        jButton5.setText("Voltar");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        btnCancelar.setText("Cancelar");
+        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                btnCancelarActionPerformed(evt);
             }
         });
 
@@ -154,15 +156,10 @@ public class TelaObjeto extends javax.swing.JDialog {
                 comboMaterialItemStateChanged(evt);
             }
         });
-        comboMaterial.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                comboMaterialActionPerformed(evt);
-            }
-        });
 
         jLabel5.setText("Material");
 
-        tblRecorte.setModel(new javax.swing.table.DefaultTableModel(
+        tabelaRecorte.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -170,35 +167,19 @@ public class TelaObjeto extends javax.swing.JDialog {
 
             }
         ));
-        tblRecorte.addMouseListener(new java.awt.event.MouseAdapter() {
+        tabelaRecorte.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblRecorteMouseClicked(evt);
+                tabelaRecorteMouseClicked(evt);
             }
         });
-        scrTabela.setViewportView(tblRecorte);
+        scrTabela.setViewportView(tabelaRecorte);
 
-        btnSalvar1.setText("Salvar");
-        btnSalvar1.addActionListener(new java.awt.event.ActionListener() {
+        btnInserirMaterial.setLabel("Inserir");
+        btnInserirMaterial.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSalvar1ActionPerformed(evt);
+                btnInserirMaterialActionPerformed(evt);
             }
         });
-
-        txtQtd.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtQtdActionPerformed(evt);
-            }
-        });
-
-        jLabel6.setText("Quantidade");
-
-        txtQtdMao.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtQtdMaoActionPerformed(evt);
-            }
-        });
-
-        jLabel7.setText("Qtd Mão");
 
         btnImprimir.setText("Imprimir");
         btnImprimir.addActionListener(new java.awt.event.ActionListener() {
@@ -209,71 +190,52 @@ public class TelaObjeto extends javax.swing.JDialog {
 
         jLabel8.setText("Objeto de Cálculo");
 
-        lblAreaUtill.setText("--/--");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(32, 32, 32)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jLabel2)
-                        .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel4)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(BtnRecorte)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblAreaUtill)
-                            .addGap(41, 41, 41))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel5)
-                                .addComponent(comboMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGap(18, 18, 18)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel6)
-                                .addComponent(txtQtd, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGap(18, 18, 18)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel7)
-                                .addComponent(txtQtdMao)))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addComponent(jLabel8)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnSalvar1, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnImprimir, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addComponent(jScrollPane2))
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(32, 32, 32)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(242, 242, 242))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addComponent(txtAltura, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE)
-                                    .addComponent(txtNome))
-                                .addGap(87, 87, 87)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(147, 147, 147))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel1)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(scrTabela, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txtDescricao, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(txtLargura, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel2))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel3)
+                                        .addComponent(txtAltura, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addComponent(jLabel4)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btnCadastroRecorte))
                                 .addGroup(layout.createSequentialGroup()
-                                    .addComponent(jLabel3)
-                                    .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(txtLargura, javax.swing.GroupLayout.DEFAULT_SIZE, 183, Short.MAX_VALUE)
-                                    .addContainerGap(65, Short.MAX_VALUE)))))))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lblAmbiente)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                            .addComponent(jLabel5)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(comboMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(btnInserirMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(btnImprimir, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addGap(8, 8, 8)))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(lblAmbiente)))
+                .addContainerGap(24, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -281,273 +243,84 @@ public class TelaObjeto extends javax.swing.JDialog {
                 .addContainerGap()
                 .addComponent(lblAmbiente)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(txtLargura, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addGap(26, 26, 26)))
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtAltura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSalvar))
-                .addGap(21, 21, 21)
+                    .addComponent(txtLargura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtAltura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(32, 32, 32)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
-                    .addComponent(BtnRecorte)
-                    .addComponent(lblAreaUtill))
+                    .addComponent(btnCadastroRecorte))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(1, 1, 1)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(comboMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtQtd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtQtdMao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel7)
-                        .addComponent(jLabel6)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSalvar1, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
+                    .addComponent(jLabel5)
+                    .addComponent(comboMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnInserirMaterial, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(35, 35, 35)
+                .addGap(38, 38, 38)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton5)
-                    .addComponent(btnImprimir))
-                .addGap(67, 67, 67))
+                    .addComponent(btnImprimir)
+                    .addComponent(btnSalvar)
+                    .addComponent(btnCancelar))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
 
-        setSize(new java.awt.Dimension(538, 653));
+        setSize(new java.awt.Dimension(532, 647));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
-
-    private void txtAlturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtAlturaActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtAlturaActionPerformed
-    public void atualizaComboboxMaterial() {
-        ArrayList<Materiais> objeto = matDAO.selecionar();
-        comboMaterial.setModel(new DefaultComboBoxModel<Materiais>(objeto.toArray(new Materiais[objeto.size()])));
-    }
-    
+        
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        ObjetoCalculoMaterial obj = new ObjetoCalculoMaterial();
-
-        obj.setNome_objCalcMat(txtNome.getText());
-        obj.setAltura(Float.parseFloat(txtAltura.getText()));
-        obj.setLargura(Float.parseFloat(txtLargura.getText()));
-        obj.setId_ambiente(id_ambiente);
-        objDAO.inserir(obj);
+        SalvarObjeto();
 
         JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
 
         dispose();
     }//GEN-LAST:event_btnSalvarActionPerformed
-    
-    public void atualizaTabelaRecorte() {
+        
+    private void btnCadastroRecorteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastroRecorteActionPerformed
+        CadastrarRecorte();      
+    }//GEN-LAST:event_btnCadastroRecorteActionPerformed
 
-        ResultSet tbl = objRDAO.selecionarTabela();
-        try {
-            ResultSetMetaData metaData = tbl.getMetaData();
-            // names of columns
-            Vector<String> columnNamesTbl = new Vector<String>();
-            int columnCount = metaData.getColumnCount();
-            for (int column = 1; column <= columnCount; column++) {
-                columnNamesTbl.add(metaData.getColumnName(column));
-            }
-            // data of the table
-            Vector<Vector<Object>> dataTbl = new Vector<Vector<Object>>();
-            while (tbl.next()) {
-                Vector<Object> vectorTbl = new Vector<Object>();
-                for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-                    vectorTbl.add(tbl.getObject(columnIndex));
-                }
-                dataTbl.add(vectorTbl);
-            }
-            tblRecorte.setModel(new DefaultTableModel(dataTbl, columnNamesTbl));
-            int vColIndex = 0;
-            tblRecorte.getColumnModel().getColumn(vColIndex).setHeaderValue("Código Objeto");
-            tblRecorte.getColumnModel().getColumn(1).setHeaderValue("Nome Objeto");
-            tblRecorte.getColumnModel().getColumn(2).setHeaderValue("Altura");
-            tblRecorte.getColumnModel().getColumn(3).setHeaderValue("Largura");
-        } catch (SQLException ex) {
-            Logger.getLogger(TelaSelecionarProjeto.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-    public void atualizaTabelaCalculo() {
-
-        ResultSet tbl1 = calDAO.selecionarTabela();
-        try {
-            ResultSetMetaData metaData = tbl1.getMetaData();
-// names of columns
-            Vector<String> columnNamesTbl1 = new Vector<String>();
-            int columnCount1 = metaData.getColumnCount();
-            for (int column = 1; column <= columnCount1; column++) {
-                columnNamesTbl1.add(metaData.getColumnName(column));
-            }
-// data of the table
-            Vector<Vector<Object>> dataTbl1 = new Vector<Vector<Object>>();
-            while (tbl1.next()) {
-                Vector<Object> vectorTbl = new Vector<Object>();
-                for (int columnIndex = 1; columnIndex <= columnCount1; columnIndex++) {
-                    vectorTbl.add(tbl1.getObject(columnIndex));
-                }
-                dataTbl1.add(vectorTbl);
-            }
-            tblCalculo.setModel(new DefaultTableModel(dataTbl1, columnNamesTbl1));
-            tblCalculo.getColumnModel().getColumn(0).setHeaderValue("Código Objeto");
-            tblCalculo.getColumnModel().getColumn(1).setHeaderValue("Quantidade");
-            tblCalculo.getColumnModel().getColumn(2).setHeaderValue("Material");
-            tblCalculo.getColumnModel().getColumn(3).setHeaderValue("Obj");
-            tblCalculo.getColumnModel().getColumn(4).setHeaderValue("Rendimento");
-        } catch (SQLException ex) {
-            Logger.getLogger(TelaSelecionarProjeto.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-    
-    private void BtnRecorteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BtnRecorteActionPerformed
-        TelaCadastroRecorte t = new TelaCadastroRecorte(null, true);
-        t.setVisible(true);
-        atualizaTabelaRecorte();
-        AtaulizarObjeto();
-    }//GEN-LAST:event_BtnRecorteActionPerformed
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-
+    private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         dispose();
-    }//GEN-LAST:event_jButton5ActionPerformed
-
-    private void comboMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboMaterialActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_comboMaterialActionPerformed
-
-    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        atualizaComboboxMaterial();
-    }//GEN-LAST:event_formWindowActivated
+    }//GEN-LAST:event_btnCancelarActionPerformed
 
     private void comboMaterialItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboMaterialItemStateChanged
-        Materiais mat = (Materiais) comboMaterial.getSelectedItem();
+        Material mat = (Material) comboMaterial.getSelectedItem();
     }//GEN-LAST:event_comboMaterialItemStateChanged
 
-    private void tblRecorteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblRecorteMouseClicked
+    private void tabelaRecorteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaRecorteMouseClicked
         JTable tabela = (JTable) evt.getSource();
-        int row = tabela.rowAtPoint(evt.getPoint());
-        //int column = source.columnAtPoint(evt.getPoint());
+        int row = tabela.rowAtPoint(evt.getPoint());        
 
-        String codigo = tabela.getModel().getValueAt(row, 0) + "";
-
-        //        btnEdit.setEnabled(true);
-    }//GEN-LAST:event_tblRecorteMouseClicked
+        String idRecorteSelecionado = tabela.getModel().getValueAt(row, 0) + "";
+        setIdRecorteSelecionado(Integer.parseInt(idRecorteSelecionado));        
+    }//GEN-LAST:event_tabelaRecorteMouseClicked
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        atualizaTabelaRecorte();
-        atualizaTabelaCalculo();                       
+        CarregarObjeto();
     }//GEN-LAST:event_formWindowOpened
-
-    private void AtaulizarObjeto() {
-        ArrayList<ObjetoCalculoMaterialRecorte> listRecorte =  objRDAO.selecionarPorIdCalculo(1);
-        
-        ObjetoCalculoMaterial obj = new ObjetoCalculoMaterial();
-        obj.setNome_objCalcMat(txtNome.getText());
-        obj.setAltura(Float.parseFloat(txtAltura.getText()));
-        obj.setLargura(Float.parseFloat(txtLargura.getText()));
-        obj.setId_ambiente(id_ambiente);
-        
-        float area = obj.CalcularArea();
-        float areaUtil = obj.CalcularAreaUtil(listRecorte);     
-        
-        lblAreaUtill.setText(areaUtil + "/" + area);        
-    } 
-    
-    private void btnSalvar1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvar1ActionPerformed
-
-        ObjetoCalculoMaterialMateriais cal = new ObjetoCalculoMaterialMateriais();
-        Materiais usu = (Materiais) comboMaterial.getSelectedItem();
-        cal.setId_ocmMat(usu.getId_mat());
-        cal.setQuantidade(Integer.parseInt(txtQtd.getText()));
-        cal.setQntDmao_ocm(Integer.parseInt(txtQtdMao.getText()));
-        cal.setId_ocmMatCalc(1);
-
-        calDAO.inserir(cal);
-
-        JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
-        atualizaTabelaCalculo();
-        TelaObjeto t = new TelaObjeto(null, true, id_ambiente);
-        t.setVisible(true);
-
-
-    }//GEN-LAST:event_btnSalvar1ActionPerformed
-
-    private void txtQtdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtQtdActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtQtdActionPerformed
-
-    private void txtQtdMaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtQtdMaoActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtQtdMaoActionPerformed
+   
+    private void btnInserirMaterialActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInserirMaterialActionPerformed
+        InserirMaterial();        
+    }//GEN-LAST:event_btnInserirMaterialActionPerformed
 
     private void btnImprimirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImprimirActionPerformed
-        // Buscando pasta para salvar o PDF
-        String path = "";
-        JFileChooser j = new JFileChooser();
-        j.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        j.showSaveDialog(this);
-        path = j.getSelectedFile().getPath();
-
-        try {
-            //Gerando documento pdf
-            PdfWriter writer = new PdfWriter(path + "/Listagem.pdf");
-            PdfDocument pdf = new PdfDocument(writer);
-            pdf.setTagged();
-            pdf.setDefaultPageSize(PageSize.A4);
-            Document doc = new Document(pdf);
-
-            //Criando cabeçalho
-            Paragraph titulo = new Paragraph("Lista de Materiais/Orçamento");
-            titulo.setBold();
-            titulo.setFontSize(15);
-            titulo.setTextAlignment(TextAlignment.CENTER);
-            doc.add(titulo);
-
-            //Criando a tabela
-            Table tbl = new Table(4).useAllAvailableWidth();
-            tbl.addCell("Codigo");
-            tbl.addCell("Quantidade");
-            tbl.addCell("Material");
-            tbl.addCell("Obj");
-
-            for (int i = 0; i < tblCalculo.getRowCount(); i++) {
-                tbl.addCell(tblCalculo.getValueAt(i, 0).toString());
-                tbl.addCell(tblCalculo.getValueAt(i, 1).toString());
-                tbl.addCell(tblCalculo.getValueAt(i, 2).toString());
-                tbl.addCell(tblCalculo.getValueAt(i, 3).toString());
-
-            }
-            doc.add(tbl);
-
-            doc.close();
-
-        } catch (FileNotFoundException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao gerar relatório " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-        }
+        Imprimir();
     }//GEN-LAST:event_btnImprimirActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -575,7 +348,7 @@ public class TelaObjeto extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                TelaObjeto dialog = new TelaObjeto(new javax.swing.JFrame(), true, 0);
+                TelaObjeto dialog = new TelaObjeto(new javax.swing.JFrame(), true, 0, 0);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -588,30 +361,223 @@ public class TelaObjeto extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton BtnRecorte;
+    private javax.swing.JButton btnCadastroRecorte;
+    private javax.swing.JButton btnCancelar;
     private javax.swing.JButton btnImprimir;
+    private javax.swing.JButton btnInserirMaterial;
     private javax.swing.JButton btnSalvar;
-    private javax.swing.JButton btnSalvar1;
-    private javax.swing.JComboBox<Materiais> comboMaterial;
-    private javax.swing.JButton jButton5;
+    private javax.swing.JComboBox<models.Material> comboMaterial;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lblAmbiente;
-    private javax.swing.JLabel lblAreaUtill;
     private javax.swing.JScrollPane scrTabela;
-    private javax.swing.JTable tblCalculo;
-    private javax.swing.JTable tblRecorte;
+    private javax.swing.JTable tabelaMaterialCalculado;
+    private javax.swing.JTable tabelaRecorte;
     private javax.swing.JTextField txtAltura;
+    private javax.swing.JTextField txtDescricao;
     private javax.swing.JTextField txtLargura;
-    private javax.swing.JTextField txtNome;
-    private javax.swing.JTextField txtQtd;
-    private javax.swing.JTextField txtQtdMao;
     // End of variables declaration//GEN-END:variables
+
+    private int getIdObjeto() {
+        return idObjeto;
+    }
+    
+    private void setIdObjeto(int idObjeto) {
+        this.idObjeto = idObjeto;
+    }
+    
+    private int getIdAmbiente() {
+        return idAmbiente;
+    }
+
+    private void setIdAmbiente(int idAmbiente) {
+        this.idAmbiente = idAmbiente;
+    }
+
+    private int getIdRecorteSelecionado() {
+        return idRecorteSelecionado;
+    }
+
+    private void setIdRecorteSelecionado(int idRecorteSelecionado) {
+        this.idRecorteSelecionado = idRecorteSelecionado;
+    }
+
+    private int getIdMaterialCalculadoSelecionado() {
+        return idMaterialCalculadoSelecionado;
+    }
+
+    private void setIdMaterialCalculadoSelecionado(int idMaterialCalculadoSelecionado) {
+        this.idMaterialCalculadoSelecionado = idMaterialCalculadoSelecionado;
+    }
+    
+    private void SalvarObjeto() {
+        this.objetoCorrente.setDescricao(txtDescricao.getText());
+        this.objetoCorrente.setAltura(Float.parseFloat(txtAltura.getText()));
+        this.objetoCorrente.setLargura(Float.parseFloat(txtLargura.getText()));
+        this.objetoCorrente.setIdAmbiente(getIdAmbiente());
+               
+        objetosDao.Salvar(this.objetoCorrente);    
+        
+        AtualizarMateriaisCalculados();
+    }
+
+    private void CarregarObjeto() {
+        if(getIdObjeto() > 0) {
+            this.objetoCorrente = objetosDao.SelecionarPorId(getIdObjeto());
+            
+            txtDescricao.setText(this.objetoCorrente.getDescricao());
+            txtAltura.setText(Float.toString(this.objetoCorrente.getAltura()));
+            txtLargura.setText(Float.toString(this.objetoCorrente.getLargura()));
+            
+            btnCadastroRecorte.setVisible(true);
+            btnInserirMaterial.setVisible(true);
+        }
+        AtualizaComboboxMaterial();
+        AtualizaTabelaRecorte();
+        AtualizaTabelaCalculo(); 
+    }
+        
+    private void AtualizaComboboxMaterial() {
+        ArrayList<Material> objeto = materiaisDao.Selecionar();
+        comboMaterial.setModel(new DefaultComboBoxModel<Material>(objeto.toArray(new Material[objeto.size()])));
+    }
+    
+    private void AtualizaTabelaRecorte() {       
+        if(getIdObjeto() > 0) {        
+            ResultSet tbl = recortesDao.SelecionarTabelaPorIdObjeto(getIdObjeto());
+
+            TabelaBase tabela = new TabelaBase(tbl);
+
+            tabelaRecorte.setModel(new DefaultTableModel(tabela.ObterDados(), tabela.ObterColuna()));            
+            tabelaRecorte.getColumnModel().getColumn(0).setHeaderValue("Código Objeto");
+            tabelaRecorte.getColumnModel().getColumn(1).setHeaderValue("Nome Objeto");
+            tabelaRecorte.getColumnModel().getColumn(2).setHeaderValue("Altura");
+            tabelaRecorte.getColumnModel().getColumn(3).setHeaderValue("Largura");      
+        }
+    }
+
+    public void AtualizaTabelaCalculo() {    
+        if(getIdObjeto() > 0) {   
+            ResultSet tbl = materiaisCalculadoDao.SelecionarTabelaPorIdObjeto(getIdObjeto());
+
+            TabelaBase tabela = new TabelaBase(tbl);
+            
+            tabelaMaterialCalculado.setModel(new DefaultTableModel(tabela.ObterDados(), tabela.ObterColuna()));
+            tabelaMaterialCalculado.getColumnModel().getColumn(0).setHeaderValue("Código Objeto");
+            tabelaMaterialCalculado.getColumnModel().getColumn(1).setHeaderValue("Quantidade");
+            tabelaMaterialCalculado.getColumnModel().getColumn(2).setHeaderValue("Material");
+            tabelaMaterialCalculado.getColumnModel().getColumn(3).setHeaderValue("Obj");
+            tabelaMaterialCalculado.getColumnModel().getColumn(4).setHeaderValue("Rendimento");                   
+        }
+    }       
+        
+    private void CadastrarRecorte(){
+        TelaCadastroRecorte telaCadastroRecorte = new TelaCadastroRecorte(null, true, getIdObjeto());
+        telaCadastroRecorte.setVisible(true);
+                
+        AtualizaTabelaRecorte();  
+    }
+    
+    private void InserirMaterial(){                        
+        float areaUtil = ObterAreaUtil();
+        Material material = (Material) comboMaterial.getSelectedItem();            
+        int quantidadeDeMao = 1;
+                
+        MaterialCalculado materialCalculado = new MaterialCalculado(material, areaUtil, quantidadeDeMao, getIdObjeto());
+        materiaisCalculadoDao.Salvar(materialCalculado);
+        
+        JOptionPane.showMessageDialog(this, "Material calculado com sucesso!");
+
+        AtualizaTabelaCalculo();
+    }
+    
+    private void AtualizarMateriaisCalculados() {
+        if(getIdObjeto() > 0)
+        {
+            float areaUltil = ObterAreaUtil();
+            ArrayList<MaterialCalculado> materiaisCalculado = materiaisCalculadoDao.SelecionarPorIdObjeto(getIdObjeto());
+            for(MaterialCalculado materialCalculado : materiaisCalculado){
+                Material material = materiaisDao.SelecionarPorId(materialCalculado.getIdMaterial());
+                
+                materialCalculado.Calcular(material, areaUltil, 1);
+                
+                materiaisCalculadoDao.Salvar(materialCalculado);
+            }
+            
+        }    
+    }
+    
+    private float ObterAreaUtil(){
+        ArrayList<Recorte> recortes = recortesDao.SelecionarPorIdObjeto(getIdObjeto());
+        float areaUtil = this.objetoCorrente.GetAreaUtil(recortes);
+        if(areaUtil <= 0){
+            JOptionPane.showMessageDialog(this, "Deve-se cadastar a altura e largura!");
+            return 0;
+        }
+        
+        return areaUtil;
+    }
+    
+    private void Imprimir(){
+         // Buscando pasta para salvar o PDF
+        String path = "";
+        JFileChooser j = new JFileChooser();
+        j.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        j.showSaveDialog(this);
+        path = j.getSelectedFile().getPath();
+
+        try {
+            //Gerando documento pdf
+            PdfWriter writer = new PdfWriter(path + "/Listagem.pdf");
+            PdfDocument pdf = new PdfDocument(writer);
+            pdf.setTagged();
+            pdf.setDefaultPageSize(PageSize.A4);
+            Document doc = new Document(pdf);
+
+            //Criando cabeçalho
+            Paragraph titulo = new Paragraph("Lista de Materiais/Orçamento");
+            titulo.setBold();
+            titulo.setFontSize(15);
+            titulo.setTextAlignment(TextAlignment.CENTER);
+            doc.add(titulo);
+
+            //Criando a tabela
+            Table tbl = new Table(5).useAllAvailableWidth();
+            tbl.addCell("Ambiente");
+            tbl.addCell("Objeto");
+            tbl.addCell("Material");
+            tbl.addCell("CustoTotal");
+            tbl.addCell("CustoMetro2");
+            
+            
+            //Obtendo dados 
+            ResultSet dados = relatoriosDao.SelecionarPorIdObjeto(getIdObjeto());
+            
+            try{
+                while (dados.next()) {                    
+                    tbl.addCell(dados.getString("DescricaoAmbiente"));
+                    tbl.addCell(dados.getString("DescricaoObjeto"));
+                    tbl.addCell(dados.getString("DescricaoMaterial"));
+                    tbl.addCell(Float.toString(dados.getFloat("CustoTotal")));
+                    tbl.addCell(Float.toString(dados.getFloat("CustoMetro2")));                    
+                }
+            
+            } catch (SQLException ex) {
+                Logger.getLogger(TabelaBase.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            doc.add(tbl);
+
+            doc.close();
+
+        } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao gerar relatório " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
 }

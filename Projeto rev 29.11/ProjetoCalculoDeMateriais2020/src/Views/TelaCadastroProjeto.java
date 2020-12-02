@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Views;
 
-import dao.mysql.AmbienteDAO;
-import dao.mysql.ClienteDAO;
+import dao.mysql.AmbientesDAO;
+import dao.mysql.ClientesDAO;
 import dao.mysql.ProjetoDAO;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -19,9 +14,10 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import models.AmbienteProjeto;
+import models.Ambiente;
 import models.Cliente;
 import models.Projeto;
+import models.TabelaBase;
 import models.Usuario;
 
 /**
@@ -29,32 +25,27 @@ import models.Usuario;
  * @author ngarcia
  */
 public class TelaCadastroProjeto extends javax.swing.JDialog {
+    private Usuario usuarioLogado = null ;
+    private ClientesDAO clienteDao = null;
+    private ProjetoDAO projetoDao = null;
+    private AmbientesDAO ambienteDao = null;    
+    private int idProjetoSelecionado;
+    private int idAmbienteSelecionado;
 
-    private ClienteDAO cliDAO;
-    private ProjetoDAO proDAO;
-    private AmbienteDAO ambDAO;
-    private int codigoSelecionado;
-    private int codigoSelecionadoAmb;
-
-    public TelaCadastroProjeto(java.awt.Frame parent, boolean modal, int codigoSelecionado) {
+    public TelaCadastroProjeto(java.awt.Frame parent, boolean modal, int idProjeto, Usuario usuarioLogado) {
         super(parent, modal);
         initComponents();
-
-        cliDAO = new ClienteDAO();
-        proDAO = new ProjetoDAO();
-        ambDAO = new AmbienteDAO();
-
-        this.codigoSelecionado = codigoSelecionado;
-        if (codigoSelecionado != 0) {
-            btnAdicionaAmb.setEnabled(true);
+        
+        this.usuarioLogado = usuarioLogado;
+        this.clienteDao = new ClientesDAO();
+        this.projetoDao = new ProjetoDAO();
+        this.ambienteDao = new AmbientesDAO();
+        this.setIdProjetoSelecionado(idProjeto);
+        if (idProjeto != 0) {            
+            btbNovoAmbiente.setEnabled(true);
         }
     }
-
-    public void atualizaCombobox() {
-        ArrayList<Cliente> clientes = cliDAO.selecionar();
-        comboCliente.setModel(new DefaultComboBoxModel<Cliente>(clientes.toArray(new Cliente[clientes.size()])));
-    }
-
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -79,11 +70,11 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
         lblAmbientes = new javax.swing.JLabel();
         btnCancelar = new javax.swing.JButton();
         btnSalvar = new javax.swing.JButton();
-        btnAdicionaAmb = new javax.swing.JButton();
+        btbNovoAmbiente = new javax.swing.JButton();
         scrTabela = new javax.swing.JScrollPane();
         tblAmbiente = new javax.swing.JTable();
         comboCliente = new javax.swing.JComboBox<>();
-        btnEdit = new javax.swing.JButton();
+        btnEditarAmbiente = new javax.swing.JButton();
         btnImprimir = new javax.swing.JButton();
 
         jButton5.setText("Voltar");
@@ -123,25 +114,26 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
 
         lblAmbientes.setText("Ambientes:");
 
-        btnCancelar.setText("CANCELAR");
+        btnCancelar.setText("Cancelar");
         btnCancelar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCancelarActionPerformed(evt);
             }
         });
 
-        btnSalvar.setText("SALVAR");
+        btnSalvar.setText("Salvar");
+        btnSalvar.setActionCommand("Salvar");
         btnSalvar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSalvarActionPerformed(evt);
             }
         });
 
-        btnAdicionaAmb.setText("+");
-        btnAdicionaAmb.setEnabled(false);
-        btnAdicionaAmb.addActionListener(new java.awt.event.ActionListener() {
+        btbNovoAmbiente.setText("Novo");
+        btbNovoAmbiente.setEnabled(false);
+        btbNovoAmbiente.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAdicionaAmbActionPerformed(evt);
+                btbNovoAmbienteActionPerformed(evt);
             }
         });
 
@@ -171,11 +163,11 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
             }
         });
 
-        btnEdit.setText("Editar");
-        btnEdit.setEnabled(false);
-        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+        btnEditarAmbiente.setText("Editar");
+        btnEditarAmbiente.setEnabled(false);
+        btnEditarAmbiente.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnEditActionPerformed(evt);
+                btnEditarAmbienteActionPerformed(evt);
             }
         });
 
@@ -196,29 +188,31 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
                         .addComponent(lblNomeCliente)
                         .addComponent(lblAmbientes)))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(btnCancelar)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btnImprimir)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnSalvar))
-                            .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 485, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnEdit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnAdicionaAmb, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addComponent(txtLogradouro, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(txtArt, javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addComponent(txtCidade, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(145, 145, 145))
-                        .addComponent(txtNomeProj, javax.swing.GroupLayout.Alignment.LEADING))
-                    .addComponent(comboCliente, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(26, Short.MAX_VALUE))
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 485, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(btnEditarAmbiente)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(btbNovoAmbiente, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(txtLogradouro, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txtArt, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(txtCidade, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(145, 145, 145))
+                                .addComponent(txtNomeProj, javax.swing.GroupLayout.Alignment.LEADING))
+                            .addComponent(comboCliente, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(97, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(btnImprimir, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnCancelar)
+                        .addGap(95, 95, 95))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -243,16 +237,15 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblNomeCliente)
                     .addComponent(comboCliente, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(44, 44, 44)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(btnAdicionaAmb, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(73, 73, 73)
-                        .addComponent(btnEdit, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(lblAmbientes)
-                        .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
+                .addGap(16, 16, 16)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btbNovoAmbiente)
+                    .addComponent(btnEditarAmbiente, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblAmbientes)
+                    .addComponent(scrTabela, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(23, 23, 23)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancelar)
                     .addComponent(btnSalvar)
@@ -281,117 +274,47 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         dispose();
     }//GEN-LAST:event_btnCancelarActionPerformed
-    public void atualizaTabelaAmbiente() {
-        if (getCodigoSelecionado() != 0) {
-
-            ResultSet tbl = ambDAO.rsPorCodigo(getCodigoSelecionado());
-            try {
-                ResultSetMetaData metaData = tbl.getMetaData();
-// names of columns
-                Vector<String> columnNamesTbl = new Vector<String>();
-                int columnCount = metaData.getColumnCount();
-                for (int column = 1; column <= columnCount; column++) {
-                    columnNamesTbl.add(metaData.getColumnName(column));
-                }
-// data of the table
-                Vector<Vector<Object>> dataTbl = new Vector<Vector<Object>>();
-                while (tbl.next()) {
-                    Vector<Object> vectorTbl = new Vector<Object>();
-                    for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-                        vectorTbl.add(tbl.getObject(columnIndex));
-                    }
-                    dataTbl.add(vectorTbl);
-                }
-                tblAmbiente.setModel(new DefaultTableModel(dataTbl, columnNamesTbl));
-                int vColIndex = 0;
-                tblAmbiente.getColumnModel().getColumn(vColIndex).setHeaderValue("Código Ambiente");
-                tblAmbiente.getColumnModel().getColumn(1).setHeaderValue("Nome Ambiente");
-            } catch (SQLException ex) {
-                Logger.getLogger(TelaSelecionarProjeto.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-    }
 
     private void comboClienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboClienteActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_comboClienteActionPerformed
 
     private void comboClienteItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_comboClienteItemStateChanged
-        Cliente cli = (Cliente) comboCliente.getSelectedItem();
+        Cliente cliente = (Cliente)comboCliente.getSelectedItem();
     }//GEN-LAST:event_comboClienteItemStateChanged
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-
-        if (getCodigoSelecionado() > 0) {
-            Projeto pro = proDAO.selecionarPorCodigo(getCodigoSelecionado());
-            txtArt.setText(pro.getART());
-            txtNomeProj.setText(pro.getNomeProjeto());
-            txtLogradouro.setText(pro.getEndereço());
-            txtCidade.setText(pro.getCidade());
-            Cliente cliente = cliDAO.selecionarPorCodigo(pro.getId_cliente());
-            ArrayList<Cliente> listaCliente = new ArrayList<>();
-            listaCliente.add(cliente);
-            comboCliente.setModel(new DefaultComboBoxModel<Cliente>(listaCliente.toArray(new Cliente[listaCliente.size()])));
-
-        } else {
-            atualizaCombobox();
-        }
+       CarregarDadosProjeto();
     }//GEN-LAST:event_formWindowActivated
 
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        Projeto pro = new Projeto();
-        Cliente usu = (Cliente) comboCliente.getSelectedItem();
-        pro.setId_cliente(usu.getId_cli());
-        pro.setId_puser(1);
-        pro.setNomeProjeto(txtNomeProj.getText());
-        pro.setART(txtArt.getText());
-        pro.setEndereço(txtLogradouro.getText());
-        pro.setCidade(txtCidade.getText());
-
-        //------------------------------------
-        if (getCodigoSelecionado() == 0) {
-            proDAO.inserir(pro);
-        } else {
-            pro.setCódigo(getCodigoSelecionado());
-            proDAO.editar(pro);
-        }
-        JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
-        dispose();
+        SalvarProjeto();
     }//GEN-LAST:event_btnSalvarActionPerformed
 
-    private void btnAdicionaAmbActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAdicionaAmbActionPerformed
-        TelaAmbiente t = new TelaAmbiente(null, true, 0, codigoSelecionado);
-        t.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        t.setVisible(true);
-        atualizaTabelaAmbiente();
-
-    }//GEN-LAST:event_btnAdicionaAmbActionPerformed
+    private void btbNovoAmbienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btbNovoAmbienteActionPerformed
+        AbrirTelaAmbienteNovo();
+    }//GEN-LAST:event_btbNovoAmbienteActionPerformed
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
         // TODO add your handling code here:
     }//GEN-LAST:event_formWindowClosed
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        atualizaTabelaAmbiente();
+        AtualizaTabelaAmbiente();
     }//GEN-LAST:event_formWindowOpened
 
-    private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
-
-        TelaAmbiente tela = new TelaAmbiente(null, true, codigoSelecionadoAmb, codigoSelecionado);
-        tela.setVisible(true);
-        atualizaTabelaAmbiente();
-        btnEdit.setEnabled(false);
-    }//GEN-LAST:event_btnEditActionPerformed
+    private void btnEditarAmbienteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarAmbienteActionPerformed
+        AbrirTelaAmbienteEditar();
+    }//GEN-LAST:event_btnEditarAmbienteActionPerformed
 
     private void tblAmbienteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblAmbienteMouseClicked
         JTable tabela = (JTable) evt.getSource();
         int row = tabela.rowAtPoint(evt.getPoint());
-        //int column = source.columnAtPoint(evt.getPoint());
-
-        String codigo = tabela.getModel().getValueAt(row, 0) + "";
-        btnEdit.setEnabled(true);
-        codigoSelecionadoAmb = Integer.parseInt(codigo);
+        
+        String codigo = tabela.getModel().getValueAt(row, 0) + "";        
+        setIdAmbienteSelecionado(Integer.parseInt(codigo));
+        
+        btnEditarAmbiente.setEnabled(true);
     }//GEN-LAST:event_tblAmbienteMouseClicked
 
     /**
@@ -424,7 +347,7 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                TelaCadastroProjeto dialog = new TelaCadastroProjeto(new javax.swing.JFrame(), true, 0);
+                TelaCadastroProjeto dialog = new TelaCadastroProjeto(new javax.swing.JFrame(), true, 0, null);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -437,9 +360,9 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAdicionaAmb;
+    private javax.swing.JButton btbNovoAmbiente;
     private javax.swing.JButton btnCancelar;
-    private javax.swing.JButton btnEdit;
+    private javax.swing.JButton btnEditarAmbiente;
     private javax.swing.JButton btnImprimir;
     private javax.swing.JButton btnSalvar;
     private javax.swing.JComboBox<Cliente> comboCliente;
@@ -464,11 +387,101 @@ public class TelaCadastroProjeto extends javax.swing.JDialog {
     private javax.swing.JTextField txtLogradouro;
     private javax.swing.JTextField txtNomeProj;
     // End of variables declaration//GEN-END:variables
+   
+    private int getIdProjetoSelecionado() {
+        return this.idProjetoSelecionado;
+    }
+    
+    private void setIdProjetoSelecionado(int idProjetoSelecionado) {
+        this.idProjetoSelecionado = idProjetoSelecionado;
+    }
+    
+    private int getIdAmbienteSelecionado() {
+        return this.idAmbienteSelecionado;
+    }
+    
+    private void setIdAmbienteSelecionado(int idAmbienteSelecionado) {
+        this.idAmbienteSelecionado = idAmbienteSelecionado;
+    }
+    
+    private void CarregarDadosProjeto(){
+        if (getIdProjetoSelecionado()<= 0) {
+            AtualizaCombobox();
+            return;
+        }
+         
+        Projeto projeto = projetoDao.SelecionarPorId(getIdProjetoSelecionado());
+        txtArt.setText(projeto.getART());
+        txtNomeProj.setText(projeto.getDescricao());
+        txtLogradouro.setText(projeto.getEndereco());
+        txtCidade.setText(projeto.getCidade());
 
-    /**
-     * @return the codigoSelecionado
-     */
-    public int getCodigoSelecionado() {
-        return codigoSelecionado;
+        Cliente cliente = clienteDao.SelecionarPorId(projeto.getIdCliente());
+        ArrayList<Cliente> listaCliente = new ArrayList<>();
+        listaCliente.add(cliente);
+        comboCliente.setModel(new DefaultComboBoxModel<Cliente>(listaCliente.toArray(new Cliente[listaCliente.size()])));
+    }            
+    
+    private void SalvarProjeto()
+    {        
+        Cliente cliente = (Cliente) comboCliente.getSelectedItem();     
+        int idCliente = cliente.getId();
+        int idUsuarioLogado = usuarioLogado.getId();
+        String descricao = txtNomeProj.getText();
+        String art = txtArt.getText();
+        String endereco = txtLogradouro.getText();
+        String cidade = txtCidade.getText();
+                
+        Projeto projeto = new Projeto(getIdProjetoSelecionado(), idCliente,
+           idUsuarioLogado, descricao, art, endereco, cidade);
+          
+        String ehValido = projetoDao.EhValido(projeto);
+        if(!ehValido.equals(""))
+        {
+            JOptionPane.showMessageDialog(this, ehValido);
+            return;
+        }
+        
+        projetoDao.Salvar(projeto);        
+        JOptionPane.showMessageDialog(this, "Salvo com sucesso!");
+        
+        dispose();
+    }
+    
+    private void AtualizaCombobox() {
+        ArrayList<Cliente> clientes = clienteDao.Selecionar();
+        comboCliente.setModel(new DefaultComboBoxModel<Cliente>(clientes.toArray(new Cliente[clientes.size()])));
+    }
+    
+    private void AtualizaTabelaAmbiente() {        
+        if (getIdProjetoSelecionado() != 0) {
+            ResultSet tbl = ambienteDao.SelecionarTabelaPorIdProjeto(getIdProjetoSelecionado());
+            
+            TabelaBase tabela = new TabelaBase(tbl);                           
+            tblAmbiente.setModel(new DefaultTableModel(tabela.ObterDados(), tabela.ObterColuna()));                
+            tblAmbiente.getColumnModel().getColumn(0).setHeaderValue("Código Ambiente");
+            tblAmbiente.getColumnModel().getColumn(1).setHeaderValue("Nome Ambiente");
+        }
+
+    }
+
+    private void AbrirTelaAmbienteEditar(){
+        TelaAmbiente telaAmbiente = new TelaAmbiente(null, true, getIdAmbienteSelecionado(), getIdProjetoSelecionado());
+        telaAmbiente.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        telaAmbiente.setVisible(true);
+        
+        AtualizaTabelaAmbiente();
+        
+        btnEditarAmbiente.setEnabled(false);
+    }
+
+    private void AbrirTelaAmbienteNovo() {
+        TelaAmbiente telaAmbiente = new TelaAmbiente(null, true, 0, getIdProjetoSelecionado());
+        telaAmbiente.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        telaAmbiente.setVisible(true);
+        
+        AtualizaTabelaAmbiente();
+        
+        btnEditarAmbiente.setEnabled(false);
     }
 }

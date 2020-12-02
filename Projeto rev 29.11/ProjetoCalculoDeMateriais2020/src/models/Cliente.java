@@ -1,91 +1,58 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package models;
 
-/**
- *
- * @author ngarcia
- */
 public class Cliente {
 
-    private int id_cli;
-    private String NomeCliente;
-    private String email_cli;
-    private String tel_cli;
+    private int Id;
+    private String Nome;
+    private String Email;
+    private String Telefone;
 
     public Cliente() {
     }
 
-    public Cliente(int id_cli, String NomeCliente, String email_cli, String tel_cli) {
-        this.id_cli = id_cli;
-        this.NomeCliente = NomeCliente;
-        this.email_cli = email_cli;
-        this.tel_cli = tel_cli;
+    public Cliente(int Id, String Nome, String Email, String Telefone) {
+        this.Id = Id;
+        this.Nome = Nome;
+        this.Email = Email;
+        this.Telefone = Telefone;
 
     }
 
     @Override
     public String toString() {
-        return id_cli + " - " + NomeCliente;
+        return this.Id + " - " + this.Nome;
     }
 
-    /**
-     * @return the id_cli
-     */
-    public int getId_cli() {
-        return id_cli;
+    public int getId() {
+        return Id;
     }
 
-    /**
-     * @param id_cli the id_cli to set
-     */
-    public void setId_cli(int id_cli) {
-        this.id_cli = id_cli;
+    public void setId(int Id) {
+        this.Id = Id;
     }
 
-    /**
-     * @return the NomeCliente
-     */
-    public String getNomeCliente() {
-        return NomeCliente;
+    public String getNome() {
+        return Nome;
     }
 
-    /**
-     * @param NomeCliente the NomeCliente to set
-     */
-    public void setNomeCliente(String NomeCliente) {
-        this.NomeCliente = NomeCliente;
+    public void setNome(String Nome) {
+        this.Nome = Nome;
     }
 
-    /**
-     * @return the email_cli
-     */
-    public String getEmail_cli() {
-        return email_cli;
+    public String getEmail() {
+        return Email;
     }
 
-    /**
-     * @param email_cli the email_cli to set
-     */
-    public void setEmail_cli(String email_cli) {
-        this.email_cli = email_cli;
+    public void setEmail(String Email) {
+        this.Email = Email;
     }
 
-    /**
-     * @return the tel_cli
-     */
-    public String getTel_cli() {
-        return tel_cli;
+    public String getTelefone() {
+        return Telefone;
     }
 
-    /**
-     * @param tel_cli the tel_cli to set
-     */
-    public void setTel_cli(String tel_cli) {
-        this.tel_cli = tel_cli;
-    }
-
+    public void setTelefone(String Telefone) {
+        this.Telefone = Telefone;
+    }    
+    
 }

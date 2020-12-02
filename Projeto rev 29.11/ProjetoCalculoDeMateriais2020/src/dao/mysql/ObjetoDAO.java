@@ -1,123 +1,150 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package dao.mysql;
 
-import dao.interfaces.IObjetoCalculoMaterialDAO;
+import dao.interfaces.IObjetosDAO;
+import dao.interfaces.IRecortesDAO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import models.ObjetoCalculoMaterial;
+import models.Objeto;
+import dao.interfaces.IMateriaisCalculadoDAO;
 
-/**
- *
- * @author Flavia
- */
-public class ObjetoDAO implements IObjetoCalculoMaterialDAO {
-
-    private Connection conn;
+public class ObjetoDAO implements IObjetosDAO {               
+    private Connection conn = null;
+    private IRecortesDAO recortesDao = null;
+    private IMateriaisCalculadoDAO materiaisCalculoDao = null;
 
     public ObjetoDAO() {
         conn = ConnectionFactory.getConnection();
+        recortesDao = new RecortesDAO();
+        materiaisCalculoDao = new MateriaisCalculadoDAO();
     }
-
+    
     @Override
-    public void inserir(ObjetoCalculoMaterial objeto) {
-        try {
-            String sql = "insert into cadastroObjeto(nome,altura, largura, area, id_ambiente) values (?,?,?,?,?)";
+    public void Salvar(Objeto objeto) {
+        if(objeto.getId() > 0){
+            Editar(objeto);           
+        }
+        else
+        {
+            Inserir(objeto);
+        }                   
+    }
+        
+    @Override
+    public void Excluir(int id) {                 
+        try {            
+            recortesDao.ExcluirPorIdObjeto(id);
+            materiaisCalculoDao.ExcluirPorIdObjeto(id);
+            
+            String sql = "Delete From Objeto Where id = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, objeto.getNome_objCalcMat());
-            stmt.setFloat(2, objeto.getAltura());
-            stmt.setFloat(3, objeto.getLargura());
-            stmt.setFloat(4, 0);
-            stmt.setInt(5, objeto.getId_ambiente());
+            stmt.setInt(1, id);
             stmt.execute();
             stmt.close();
         } catch (SQLException ex) {
-            Logger.getLogger(UsuarioDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    public void editar(ObjetoCalculoMaterial objeto) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void excluir(int id) {
-        String sql;
-        PreparedStatement stmt;
+    public Objeto SelecionarPorId(int id) {
+        Objeto objeto = null;
         try {
-            sql = "delete from objcalcmatrecorte where id_Objeto = ?";
-            stmt = conn.prepareStatement(sql);
+            String query = "Select * From Objeto Where id = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setInt(1, id);
-            stmt.execute();
-            stmt.close();
-
-            sql = "delete from cadastroObjeto where id = ?";
-            stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, id);
-            stmt.execute();
-            stmt.close();
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                objeto = DadoParaObjeto(rs);
+            }
         } catch (SQLException ex) {
-            Logger.getLogger(UsuarioDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return objeto;
     }
 
     @Override
-    public ArrayList<ObjetoCalculoMaterial> selecionar() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ObjetoCalculoMaterial selecionarPorCodigo(int id_user) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ResultSet selecionarTabela(int codigo) {
+    public ResultSet SelecionarTabelaPorIdAmbiente(int id) {
         ResultSet rs;
         try {
-            String sql = "SELECT id, nome, altura, largura from cadastroObjeto where cadastroObjeto.id_ambiente = ?";
+            String sql = "SELECT Id, Descricao, Altura, Largura From Objeto where IdAmbiente = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, codigo);
+            stmt.setInt(1, id);
             rs = stmt.executeQuery();
             return rs;
         } catch (SQLException ex) {
-            Logger.getLogger(UsuarioDAO.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
+    }   
+
+    public void Inserir(Objeto objeto) {
+        try {
+            String sql = "Insert Into Objeto (Descricao, Altura, Largura, IdAmbiente) Values (?,?,?,?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, objeto.getDescricao());
+            stmt.setFloat(2, objeto.getAltura());
+            stmt.setFloat(3, objeto.getLargura());            
+            stmt.setInt(4, objeto.getIdAmbiente());
+            stmt.execute();
+            ResultSet rs = stmt.getGeneratedKeys();
+            if(rs.next())
+            {
+                objeto.setId(rs.getInt(1));
+            }
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void Editar(Objeto objeto) {
+        try {
+            String sql = "Update Objeto Set Descricao = ?, Altura = ?, Largura = ? Where Id = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, objeto.getDescricao());
+            stmt.setFloat(2, objeto.getAltura());
+            stmt.setFloat(3, objeto.getLargura());                        
+            stmt.setInt(4, objeto.getId());
+            stmt.execute();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(UsuariosDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+   
+    private ArrayList<Objeto> DadosParaLista(ResultSet dados) {
+        ArrayList<Objeto> listaObjeto = new ArrayList<>();
+        
+        try {
+            while (dados.next()) {
+                listaObjeto.add(DadoParaObjeto(dados));        
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ClientesDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+         
+        return listaObjeto;         
     }
     
-//     public ArrayList<ObjetoCalculoMaterial>AreaFinal(int id_objCalcMat) {
-//         ResultSet rs;
-//        try {
-//           
-//            String sql = "SELECT area_rec from objCalcMatRecorte where id_Calculo = ?";
-//            
-//            for (int i = 0; i < sql.length(); i++) {
-//                
-//                float areRecorteTotal += sql.area_rec ;                
-//            }
-//            
-//            PreparedStatement stmt = conn.prepareStatement(sql);
-//            
-//            
-//            //stmt.setInt(1, codigo);
-//            //rs = stmt.executeQuery();
-//            //return rs;
-//        } catch (SQLException ex) {
-//            Logger.getLogger(UsuarioDAO.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        return null;
-//         
-//    }
-
+    private Objeto DadoParaObjeto(ResultSet dado) { 
+        Objeto objeto = null;
+        try {
+            objeto = new Objeto(
+                        dado.getInt("Id"),                   
+                        dado.getString("Descricao"),
+                        dado.getInt("Altura"),
+                        dado.getInt("Largura"),
+                        dado.getInt("IdAmbiente")
+            );                 
+        } catch (SQLException ex) {
+            Logger.getLogger(ClientesDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return objeto;        
+    }
 }

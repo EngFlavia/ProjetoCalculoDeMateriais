@@ -1,137 +1,80 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package models;
 
-/**
- *
- * @author ngarcia
- */
 public class Projeto {
 
-    private int Código;
-    private int id_cliente;
-    private int id_puser;
-    private String NomeProjeto;
+    private int Id;   
+    private int IdCliente;
+    private int IdUsuario;
+    private String Descricao;
     private String ART;
-    private String Endereço;
+    private String Endereco;
     private String Cidade;
-
-    public Projeto() {
+    
+    public Projeto(int id, int idCliente, int idUsuario, String descricao,
+             String art, String endereco, String cidade) {
+        this.Id = id;
+        this.IdCliente = idCliente;
+        this.IdUsuario = idUsuario;
+        this.Descricao = descricao;
+        this.ART = art;
+        this.Endereco = endereco;
+        this.Cidade = cidade;
+    }       
+    
+    public int getId() {
+        return Id;
     }
 
-    public Projeto(int Código, int id_cliente, int id_puser, String NomeProjeto,
-             String ART, String Endereço, String Cidade) {
-        this.Código = Código;
-        this.id_cliente = id_cliente;
-        this.id_puser = id_puser;
-        this.NomeProjeto = NomeProjeto;
-        this.ART = ART;
-        this.Endereço = Endereço;
-        this.Cidade = Cidade;
-
+    public void setId(int Id) {
+        this.Id = Id;
     }
 
-    /**
-     * @return the Código
-     */
-    public int getCódigo() {
-        return Código;
+    public int getIdCliente() {
+        return IdCliente;
     }
 
-    /**
-     * @param Código the Código to set
-     */
-    public void setCódigo(int Código) {
-        this.Código = Código;
+    public void setIdCliente(int IdCliente) {
+        this.IdCliente = IdCliente;
     }
 
-    /**
-     * @return the id_pcli
-     */
-    public int getId_cliente() {
-        return id_cliente;
+    public int getIdUsuario() {
+        return IdUsuario;
     }
 
-    /**
-     * @param id_pcli the id_pcli to set
-     */
-    public void setId_cliente(int id_cliente) {
-        this.id_cliente = id_cliente;
+    public void setIdUsuario(int IdUsuario) {
+        this.IdUsuario = IdUsuario;
     }
 
-    /**
-     * @return the id_puser
-     */
-    public int getId_puser() {
-        return id_puser;
+    public String getDescricao() {
+        return Descricao;
     }
 
-    /**
-     * @param id_puser the id_puser to set
-     */
-    public void setId_puser(int id_puser) {
-        this.id_puser = id_puser;
+    public void setDescricao(String Descricao) {
+        this.Descricao = Descricao;
     }
 
-    /**
-     * @return the NomeProjeto
-     */
-    public String getNomeProjeto() {
-        return NomeProjeto;
-    }
-
-    /**
-     * @param NomeProjeto the NomeProjeto to set
-     */
-    public void setNomeProjeto(String NomeProjeto) {
-        this.NomeProjeto = NomeProjeto;
-    }
-
-    /**
-     * @return the ART
-     */
     public String getART() {
         return ART;
     }
 
-    /**
-     * @param ART the ART to set
-     */
     public void setART(String ART) {
         this.ART = ART;
     }
 
-    /**
-     * @return the Endereço
-     */
-    public String getEndereço() {
-        return Endereço;
+    public String getEndereco() {
+        return Endereco;
     }
 
-    /**
-     * @param Endereço the Endereço to set
-     */
-    public void setEndereço(String Endereço) {
-        this.Endereço = Endereço;
+    public void setEndereco(String Endereco) {
+        this.Endereco = Endereco;
     }
 
-    /**
-     * @return the Cidade
-     */
     public String getCidade() {
         return Cidade;
     }
 
-    /**
-     * @param Cidade the Cidade to set
-     */
     public void setCidade(String Cidade) {
         this.Cidade = Cidade;
     }
-
-   
 
 }
